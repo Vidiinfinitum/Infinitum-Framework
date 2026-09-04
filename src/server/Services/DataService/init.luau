@@ -26,7 +26,7 @@ end
 
 -- Boot --
 
-function DataService:Init()
+function DataService:Init(loader)
     self._store = ProfileStore.New(GetStoreName(), Template)
     self._profiles = {} -- player -> profile
 end
