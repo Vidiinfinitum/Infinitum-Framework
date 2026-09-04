@@ -1,5 +1,3 @@
---!strict
-
 -- Game Services --
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,13 +9,29 @@ local RemotesFolder = Network:WaitForChild("Remotes")
 -- Promises --
 local Promise = require(ReplicatedStorage.Packages.Promise)
 
-local Net = {}
+-- Type --
+
+type Remote = RemoteEvent | RemoteFunction | UnreliableRemoteEvent
+
+type NetImpl = {
+	_Cache: {[string]: Remote},
+	_GetRemote: (self: NetImpl, remoteName: string) -> Remote,
+	FireServer: (self: NetImpl, remoteName: string, ...any) -> (),
+	FireClient: (self: NetImpl, player: Player, remoteName: string, ...any) -> (),
+	FireAllClient: (self: NetImpl, remoteName: string, ...any) -> (),
+	InvokeServer: (self: NetImpl, remoteName: string, ...any) -> any,
+	InvokeClient: (self: NetImpl, player: Player, remoteName: string, ...any) -> any,
+	OnEvent: (self: NetImpl, remoteName: string, callback: (...any) -> ()) -> RBXScriptConnection?,
+	OnInvoke: (self: NetImpl, remoteName: string, callback: (...any) -> ()) -> (),
+}
+
+local Net = {} :: NetImpl
 
 Net._Cache = {}
 
 -- Private --
 
-function Net:_GetRemote(remoteName: string): RemoteEvent | RemoteFunction | UnreliableRemoteEvent
+function Net:_GetRemote(remoteName: string): Remote
     local cachedRemote = self._Cache[remoteName]
 
     if cachedRemote then
@@ -114,6 +128,9 @@ function Net:OnEvent(remoteName: string, callback: (...any) -> ())
         return remote.OnServerEvent:Connect(callback)
     elseif RunService:IsClient() then
         return remote.OnClientEvent:Connect(callback)
+    else
+        error("Something wrong happened in Net:OnEvent")
+        return
     end
 end
 
@@ -130,4 +147,3 @@ function Net:OnInvoke(remoteName: string, callback: (...any) -> ())
 end
 
 return Net
-

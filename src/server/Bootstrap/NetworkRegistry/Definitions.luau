@@ -1,5 +1,3 @@
---!strict
-
 export type RemoteType = "Event" | "Function" | "UnreliableEvent"
 
 export type RemoteDefinition = {
