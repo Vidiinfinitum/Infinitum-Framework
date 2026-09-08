@@ -1,6 +1,6 @@
 -- Modules --
-local ServerBus = script.Server
-local ClientBus = script.Client
+local ServerBus = require(script.Server)
+local ClientBus = require(script.Client)
 
 return {
     Server = ServerBus,

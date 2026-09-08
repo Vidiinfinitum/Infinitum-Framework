@@ -40,7 +40,7 @@ function Net:_GetRemote(remoteName: string): Remote
 
     local current: Instance = RemotesFolder
 
-    for index, segment in string.split(remoteName) do
+    for index, segment in string.split(remoteName, ".") do
         local child = current:FindFirstChild(segment)
 
         if not child then
@@ -102,7 +102,7 @@ function Net:InvokeServer(remoteName: string, ...: any)
 
     return Promise.try(function()
         return remote:InvokeServer(table.unpack(args, 1, args.n))
-    end)
+    end):expect()
 end
 
 function Net:InvokeClient(player: Player, remoteName: string, ...: any)
@@ -116,7 +116,7 @@ function Net:InvokeClient(player: Player, remoteName: string, ...: any)
 
     return Promise.try(function()
         return remote:InvokeClient(player, table.unpack(args, 1, args.n))
-    end)
+    end):expect()
 end
 
 function Net:OnEvent(remoteName: string, callback: (...any) -> ())
@@ -147,3 +147,4 @@ function Net:OnInvoke(remoteName: string, callback: (...any) -> ())
 end
 
 return Net
+
