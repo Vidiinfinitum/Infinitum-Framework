@@ -10,6 +10,12 @@ local ServiceControllerFactory = require(ReplicatedStorage.Shared.Classes.Servic
 -- ProfileStore --
 local ProfileStore = require(ServerScriptService.ServerPackages.ProfileStore)
 
+-- Signal --
+local Signal = require(ReplicatedStorage.Packages.GoodSignal)
+
+-- Promise --
+local Promise = require(ReplicatedStorage.Packages.Promise)
+
 -- Template --
 local Template = require(script.Template)
 
@@ -27,8 +33,10 @@ end
 -- Boot --
 
 function DataService:Init(loader)
+    self._Connections = {}
     self._store = ProfileStore.New(GetStoreName(), Template)
     self._profiles = {} -- player -> profile
+    self._profileLoadedSignal = Signal.new()
 end
 
 function DataService:Start()
@@ -46,6 +54,38 @@ function DataService:Start()
     for _, player in Players:GetPlayers() do
         task.spawn(function() self:_LoadProfile(player) end)
     end
+end
+
+function DataService:WaitForProfile(player: Player)
+    return Promise.new(function(resolve, reject)
+        if self._profiles[player] then
+            resolve(self._profiles[player])
+            return
+        end
+
+        local profileConnection
+        local removingConnection
+
+        profileConnection = self._profileLoadedSignal:Connect(function(loadedPlayer, profile)
+            if loadedPlayer ~= player then return end
+
+            profileConnection:Disconnect()
+            if removingConnection then
+                removingConnection:Disconnect()
+            end
+
+            resolve(profile)
+        end)
+
+        removingConnection = Players.PlayerRemoving:Connect(function(leavingPlayer)
+            if leavingPlayer ~= player then return end
+
+            removingConnection:Disconnect()
+            profileConnection:Disconnect()
+
+            reject(("Player left before profile finished loading: {%s}"):format(player.Name))
+        end)
+    end)
 end
 
 -- Private --
@@ -74,6 +114,7 @@ function DataService:_LoadProfile(player: Player)
     end
 
     self._profiles[player] = profile
+    self._profileLoadedSignal:Fire(player, profile)
 end
 
 -- Public API --
@@ -96,6 +137,7 @@ end
 -- Devolve nil se qualquer parte do caminho não existir.
 function DataService:Get(player: Player, path: string): any
     local profile = self._profiles[player]
+    
     if not profile then return nil end
 
     local current: any = profile.Data

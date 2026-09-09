@@ -5,5 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Signal = require(ReplicatedStorage.Packages.GoodSignal)
 
 return {
-    Test = Signal.new()
+    Data = {
+        Changed = Signal.new()
+    }
 }
