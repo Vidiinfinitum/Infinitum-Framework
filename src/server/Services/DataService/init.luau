@@ -32,11 +32,16 @@ end
 
 -- Boot --
 
+-- Estado inicializado no momento em que o módulo é requerido (fase Load),
+-- garantindo que exista antes de QUALQUER Service rodar seu próprio Init().
+DataService._Connections = {}
+DataService._store = ProfileStore.New(GetStoreName(), Template)
+DataService._profiles = {}
+DataService._profileLoadedSignal = Signal.new()
+DataService._beforeSessionEndCallbacks = {}
+
 function DataService:Init(loader)
-    self._Connections = {}
-    self._store = ProfileStore.New(GetStoreName(), Template)
-    self._profiles = {} -- player -> profile
-    self._profileLoadedSignal = Signal.new()
+    -- Just exists for nothing
 end
 
 function DataService:Start()
@@ -47,6 +52,14 @@ function DataService:Start()
     self.Trove:Connect(Players.PlayerRemoving, function(player)
         local profile = self._profiles[player]
         if not profile then return end
+
+        for _, callback in self._beforeSessionEndCallbacks do
+            local success, err = pcall(callback, player)
+            if not success then
+                warn(("DataService: erro em OnBeforeSessionEnd callback: %s"):format(err))
+            end
+        end
+
         profile:EndSession()
         self._profiles[player] = nil
     end)
@@ -86,6 +99,13 @@ function DataService:WaitForProfile(player: Player)
             reject(("Player left before profile finished loading: {%s}"):format(player.Name))
         end)
     end)
+end
+
+-- Registra uma função que roda de forma síncrona para QUALQUER player que esteja saindo,
+-- sempre ANTES do profile:EndSession() ser chamado. Use isso pra persistir estado que vive
+-- fora do profile.Data (ex: caches locais de outros Services) antes da sessão fechar.
+function DataService:OnBeforeSessionEnd(callback: (player: Player) -> ())
+    table.insert(self._beforeSessionEndCallbacks, callback)
 end
 
 -- Private --
