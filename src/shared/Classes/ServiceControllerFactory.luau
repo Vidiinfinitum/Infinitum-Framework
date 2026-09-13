@@ -13,8 +13,13 @@ local EventBus = require(ReplicatedStorage.Shared.EventBus)
 
 local ServiceControllerFactory = {}
 
+local _createdNames: {[string]: boolean} = {}
+
 function ServiceControllerFactory.new(name: string): {[string]: any}
-    assert(RunService:IsServer() or RunService:IsClient(), "ServiceControllerFactory.new chamado em contexto inválido")
+    assert(RunService:IsServer() or RunService:IsClient(), "ServiceControllerFactory.new called in invalid context")
+    assert(not _createdNames[name], ("Already exists an Service/Controller with name: {%s}"):format(name))
+
+    _createdNames[name] = true
 
     return {
         Name = name,

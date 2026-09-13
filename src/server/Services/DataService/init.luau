@@ -34,7 +34,7 @@ end
 
 -- Estado inicializado no momento em que o módulo é requerido (fase Load),
 -- garantindo que exista antes de QUALQUER Service rodar seu próprio Init().
-DataService._Connections = {}
+DataService._ProfileConnections = {}
 DataService._store = ProfileStore.New(GetStoreName(), Template)
 DataService._profiles = {}
 DataService._profileLoadedSignal = Signal.new()
@@ -123,10 +123,12 @@ function DataService:_LoadProfile(player: Player)
     profile:AddUserId(player.UserId)
     profile:Reconcile()
 
-    profile.OnSessionEnd:Connect(function()
+    self._ProfileConnections[profile] = self.Trove:Add(profile.OnSessionEnd:Connect(function()
         self._profiles[player] = nil
+        self.Trove:Remove(self._ProfileConnections[profile]) -- desconecta e tira do Trove
+        self._ProfileConnections[profile] = nil
         player:Kick("An error occurred, please rejoin the game.")
-    end)
+    end), "Disconnect")
 
     if player.Parent ~= Players then
         profile:EndSession()

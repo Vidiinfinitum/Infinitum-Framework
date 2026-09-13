@@ -7,12 +7,12 @@ export type RemoteDefinition = {
 
 local Definitions: {RemoteDefinition} = {
 	{
-		Name = "PlayerMovement.Update",
+		Name = "Test.Test1",
 		Type = "UnreliableEvent",
 	},
 
 	{
-		Name = "PlayerLifecycle.PlayerDied",
+		Name = "Test.Test2",
 		Type = "Event",
 	},
 }

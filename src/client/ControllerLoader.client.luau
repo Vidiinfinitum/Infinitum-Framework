@@ -16,5 +16,5 @@ local loader = Loader.new(ControllersFolder)
 -- Boot the Loader --
 loader:Boot()
     :catch(function(err)
-       warn(("[ServerLoader] failed to boot: {%s}"):format(err))
+       warn(("[ClientLoader] failed to boot: {%s}"):format(err))
     end)

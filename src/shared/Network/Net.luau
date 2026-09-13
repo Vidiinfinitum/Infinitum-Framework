@@ -88,7 +88,7 @@ function Net:FireAllClient(remoteName: string, ...: any)
 
     assert(remote:IsA("RemoteEvent") or remote:IsA("UnreliableRemoteEvent"), ("{%s} is not an Event"):format(remoteName))
 
-    remote:FireClient(...)
+    remote:FireAllClients(...)
 end
 
 function Net:InvokeServer(remoteName: string, ...: any)
