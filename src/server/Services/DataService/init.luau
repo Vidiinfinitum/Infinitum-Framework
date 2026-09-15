@@ -21,6 +21,8 @@ local Template = require(script.Template)
 
 local DataService = ServiceControllerFactory.new("DataService")
 
+DataService.Critical = true
+
 -- Aux Functions --
 local function GetStoreName()
     return RunService:IsStudio() and "Test" or "Live"
@@ -44,7 +46,7 @@ function DataService:Init(loader)
     -- Just exists for nothing
 end
 
-function DataService:Start()
+function DataService:Start(loader)
     self.Trove:Connect(Players.PlayerAdded, function(player)
         self:_LoadProfile(player)
     end)
